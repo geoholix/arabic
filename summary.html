@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kosakata Bahasa Arab SD</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;color:#2d3748;min-height:100vh}
+
+header{background:linear-gradient(135deg,#1a5f3c,#2d9e5f);color:white;padding:18px 16px;text-align:center}
+header h1{font-size:clamp(1.1rem,4vw,1.6rem);margin-bottom:4px}
+header p{font-size:.82rem;opacity:.9}
+
+/* MODE TOGGLE */
+.mode-bar{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:14px 12px;background:white;border-bottom:2px solid #e2e8f0;position:sticky;top:0;z-index:100;box-shadow:0 2px 6px rgba(0,0,0,.07)}
+.mode-btn{padding:8px 16px;border-radius:20px;border:2px solid #2d9e5f;background:white;color:#2d9e5f;font-size:.8rem;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap}
+.mode-btn.active{background:#2d9e5f;color:white}
+.mode-btn:hover:not(.active){background:#f0fdf4}
+
+/* TABS */
+.tabs{display:flex;overflow-x:auto;background:#1a5f3c;gap:2px;padding:0 8px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab-btn{flex-shrink:0;background:rgba(255,255,255,.15);color:white;border:none;padding:10px 16px;font-size:.78rem;font-weight:600;cursor:pointer;border-radius:8px 8px 0 0;margin-top:6px;white-space:nowrap;transition:background .2s}
+.tab-btn.active{background:#f0f4f8;color:#1a5f3c}
+.tab-btn:hover:not(.active){background:rgba(255,255,255,.28)}
+
+.tab-panel{display:none;padding:14px;max-width:960px;margin:0 auto}
+.tab-panel.active{display:block}
+
+/* ===== GRID MODE ===== */
+.vocab-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:12px}
+@media(max-width:400px){.vocab-grid{grid-template-columns:1fr 1fr}}
+
+.vocab-card{background:white;border-radius:12px;padding:14px 10px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.07);border:2px solid transparent;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.vocab-card:hover{border-color:#2d9e5f;transform:translateY(-2px);box-shadow:0 6px 16px rgba(45,158,95,.2)}
+.vocab-card.flipped .front{display:none}
+.vocab-card.flipped .back{display:flex}
+.front,.back{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:90px}
+.back{display:none;flex-direction:column;align-items:center;justify-content:center}
+.card-arabic{font-family:'Traditional Arabic','Scheherazade New','Arial Unicode MS',serif;font-size:1.6rem;direction:rtl;color:#14532d;line-height:1.4;margin-bottom:4px}
+.card-indonesian{font-size:.82rem;color:#4a5568;font-weight:600;margin-bottom:2px}
+.card-num{position:absolute;top:5px;left:8px;font-size:.65rem;color:#cbd5e0;font-weight:700}
+.card-tag{position:absolute;top:5px;right:6px;font-size:.6rem;background:#f0fdf4;color:#16a34a;border-radius:999px;padding:1px 6px;border:1px solid #bbf7d0}
+.flip-hint{font-size:.62rem;color:#a0aec0;margin-top:6px}
+
+/* ===== LIST MODE ===== */
+.vocab-list{display:flex;flex-direction:column;gap:0}
+.list-item{display:flex;align-items:center;gap:12px;padding:11px 14px;background:white;border-bottom:1px solid #f0f4f8;transition:background .1s}
+.list-item:first-child{border-radius:12px 12px 0 0}
+.list-item:last-child{border-radius:0 0 12px 12px;border-bottom:none}
+.list-item:hover{background:#f0fdf4}
+.list-num{width:26px;font-size:.72rem;color:#a0aec0;font-weight:700;flex-shrink:0;text-align:right}
+.list-arabic{font-family:'Traditional Arabic','Scheherazade New','Arial Unicode MS',serif;font-size:1.4rem;direction:rtl;color:#14532d;flex:1;text-align:right;line-height:1.4}
+.list-arrow{color:#cbd5e0;font-size:.9rem;flex-shrink:0}
+.list-id{font-size:.85rem;color:#2d3748;font-weight:600;flex:1}
+.list-tag-s{font-size:.65rem;background:#f0fdf4;color:#16a34a;border-radius:999px;padding:2px 8px;border:1px solid #bbf7d0;flex-shrink:0}
+
+/* ===== FLASHCARD MODE ===== */
+.flashcard-wrap{display:flex;flex-direction:column;align-items:center;padding:10px 0}
+.fc-progress{font-size:.78rem;color:#718096;margin-bottom:12px}
+.fc-progress b{color:#1a5f3c}
+.flashcard{width:100%;max-width:380px;height:220px;perspective:1000px;cursor:pointer;margin:0 auto}
+.fc-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .5s}
+.flashcard.flipped .fc-inner{transform:rotateY(180deg)}
+.fc-face{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;box-shadow:0 6px 24px rgba(0,0,0,.12)}
+.fc-front{background:linear-gradient(135deg,#1a5f3c,#2d9e5f);color:white}
+.fc-back{background:white;transform:rotateY(180deg);border:3px solid #2d9e5f}
+.fc-label{font-size:.7rem;opacity:.7;margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em}
+.fc-arabic{font-family:'Traditional Arabic','Scheherazade New','Arial Unicode MS',serif;font-size:2.4rem;direction:rtl;line-height:1.3}
+.fc-indo{font-size:1.3rem;font-weight:700;color:#14532d}
+.fc-hint{font-size:.72rem;opacity:.6;margin-top:10px}
+.fc-controls{display:flex;gap:10px;margin-top:18px;justify-content:center;flex-wrap:wrap}
+.fc-btn{padding:9px 22px;border-radius:10px;border:none;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .15s}
+.fc-prev{background:#e2e8f0;color:#4a5568}.fc-prev:hover{background:#cbd5e0}
+.fc-next{background:#2d9e5f;color:white}.fc-next:hover{background:#1a5f3c}
+.fc-shuffle{background:#fffbeb;color:#92400e;border:1px solid #fcd34d}.fc-shuffle:hover{background:#fef3c7}
+.fc-counter{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;justify-content:center}
+.fc-dot{width:10px;height:10px;border-radius:50%;background:#e2e8f0;cursor:pointer;transition:background .2s}
+.fc-dot.active{background:#2d9e5f}
+.fc-dot.seen{background:#bbf7d0}
+
+/* ===== SEARCH ===== */
+.search-bar{display:flex;gap:8px;margin-bottom:14px}
+.search-input{flex:1;border:1.5px solid #e2e8f0;border-radius:8px;padding:9px 13px;font-size:.85rem;outline:none;transition:border-color .2s}
+.search-input:focus{border-color:#2d9e5f}
+.search-clear{background:#e2e8f0;border:none;border-radius:8px;padding:9px 13px;cursor:pointer;font-size:.82rem;color:#4a5568}
+.no-result{text-align:center;color:#a0aec0;padding:30px;font-size:.88rem}
+
+/* Section header in list/grid */
+.sec-header{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#718096;margin:14px 0 8px;display:flex;align-items:center;gap:8px}
+.sec-header::after{content:'';flex:1;height:1px;background:#e2e8f0}
+.sec-badge{background:#2d9e5f;color:white;border-radius:999px;padding:2px 9px;font-size:.65rem}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📖 Kosakata Bahasa Arab SD</h1>
+  <p>Penilaian Harian · Semester Genap &amp; Ganjil 2025/2026</p>
+</header>
+
+<!-- MODE TOGGLE -->
+<div class="mode-bar">
+  <button class="mode-btn active" onclick="setMode('grid',this)">🃏 Kartu</button>
+  <button class="mode-btn" onclick="setMode('list',this)">📋 Daftar</button>
+  <button class="mode-btn" onclick="setMode('flash',this)">⚡ Flashcard</button>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="showTab('all',this)">🌐 Semua</button>
+  <button class="tab-btn" onclick="showTab('t1',this)">🚌 Transportasi</button>
+  <button class="tab-btn" onclick="showTab('t2',this)">🏠 Perabot Rumah</button>
+  <button class="tab-btn" onclick="showTab('t3',this)">👘 Pakaian</button>
+  <button class="tab-btn" onclick="showTab('t4',this)">🌿 Alam</button>
+</div>
+
+<div id="content-area"></div>
+
+<script>
+// =========================================================
+//  DATA
+// =========================================================
+const VOCAB = [
+  // PH1 - Alat Transportasi
+  {ar:'قِطَارٌ',     id:'Kereta Api',       cat:'t1', label:'Transportasi'},
+  {ar:'شَاحِنَةٌ',   id:'Truk',             cat:'t1', label:'Transportasi'},
+  {ar:'عَرَبَةٌ',    id:'Delman',           cat:'t1', label:'Transportasi'},
+  {ar:'بَاخِرَةٌ',   id:'Kapal Laut',       cat:'t1', label:'Transportasi'},
+  {ar:'طَائِرَةٌ',   id:'Pesawat Terbang',  cat:'t1', label:'Transportasi'},
+  {ar:'سَيَّارَةٌ',  id:'Mobil',            cat:'t1', label:'Transportasi'},
+  {ar:'جَوَّالَةٌ',  id:'Gerobak Dorong',   cat:'t1', label:'Transportasi'},
+  {ar:'دَرَّاجَةٌ',  id:'Sepeda',           cat:'t1', label:'Transportasi'},
+  {ar:'أُوتُوبِيسٌ', id:'Bus',              cat:'t1', label:'Transportasi'},
+  {ar:'إِسْعَافٌ',   id:'Ambulan',          cat:'t1', label:'Transportasi'},
+  // PH2 - Perabot Rumah
+  {ar:'مِرْوَحَةٌ',  id:'Kipas Angin',      cat:'t2', label:'Perabot'},
+  {ar:'وِسَادَةٌ',   id:'Bantal',           cat:'t2', label:'Perabot'},
+  {ar:'مِظَلَّةٌ',   id:'Payung',           cat:'t2', label:'Perabot'},
+  {ar:'مَائِدَةٌ',   id:'Meja',             cat:'t2', label:'Perabot'},
+  {ar:'مِذْيَاعٌ',   id:'Radio',            cat:'t2', label:'Perabot'},
+  {ar:'مَوْقِدٌ',    id:'Kompor Gas',       cat:'t2', label:'Perabot'},
+  {ar:'سَرِيرٌ',     id:'Tempat Tidur',     cat:'t2', label:'Perabot'},
+  {ar:'مِغْسَلَةٌ',  id:'Mesin Cuci',       cat:'t2', label:'Perabot'},
+  {ar:'مِلْعَقَةٌ',  id:'Sendok',           cat:'t2', label:'Perabot'},
+  {ar:'هَاتِفٌ',     id:'Telepon',          cat:'t2', label:'Perabot'},
+  {ar:'ثَلَّاجَةٌ',  id:'Kulkas',           cat:'t2', label:'Perabot'},
+  {ar:'خِزَانَةٌ',   id:'Lemari',           cat:'t2', label:'Perabot'},
+  {ar:'صَحْنٌ',      id:'Piring',           cat:'t2', label:'Perabot'},
+  {ar:'مِكْنَسَةٌ',  id:'Sapu',             cat:'t2', label:'Perabot'},
+  {ar:'كُرْسِيٌّ',   id:'Kursi',            cat:'t2', label:'Perabot'},
+  // PH3 - Pakaian
+  {ar:'سِرْوَالٌ',   id:'Celana',           cat:'t3', label:'Pakaian'},
+  {ar:'قَلَنْسُوَةٌ',id:'Peci',             cat:'t3', label:'Pakaian'},
+  {ar:'رِبَاطٌ',     id:'Dasi',             cat:'t3', label:'Pakaian'},
+  {ar:'جُبَّةٌ',     id:'Jubah',            cat:'t3', label:'Pakaian'},
+  {ar:'جَوْرَبٌ',    id:'Kaos Kaki',        cat:'t3', label:'Pakaian'},
+  {ar:'خِمَارٌ',     id:'Kerudung',         cat:'t3', label:'Pakaian'},
+  {ar:'إِزَارٌ',     id:'Kain Sarung',      cat:'t3', label:'Pakaian'},
+  {ar:'حِذَاءٌ',     id:'Sepatu',           cat:'t3', label:'Pakaian'},
+  {ar:'ثَوْبٌ',      id:'Baju',             cat:'t3', label:'Pakaian'},
+  {ar:'جِدَارٌ',     id:'Dinding / Tembok', cat:'t3', label:'Pakaian'},
+  {ar:'سُبُّورَةٌ',  id:'Papan Tulis',      cat:'t3', label:'Pakaian'},
+  // PH4 - Alam
+  {ar:'شَلَّالٌ',    id:'Air Terjun',       cat:'t4', label:'Alam'},
+  {ar:'غَابَةٌ',     id:'Hutan',            cat:'t4', label:'Alam'},
+  {ar:'بَاخِرَةٌ',   id:'Kapal Laut',       cat:'t4', label:'Alam'},
+  {ar:'قِطَارٌ',     id:'Kereta Api',       cat:'t4', label:'Alam'},
+  {ar:'كُمْبِيُوتَرٌ',id:'Komputer',        cat:'t4', label:'Alam'},
+  {ar:'مَزْرَعَةٌ',  id:'Sawah / Ladang',   cat:'t4', label:'Alam'},
+  {ar:'نَهْرٌ',      id:'Sungai',           cat:'t4', label:'Alam'},
+  {ar:'بُحَيْرَةٌ',  id:'Danau',            cat:'t4', label:'Alam'},
+  {ar:'جَبَلٌ',      id:'Gunung',           cat:'t4', label:'Alam'},
+  {ar:'شَاطِئُ الْبَحْرِ', id:'Pantai Laut', cat:'t4', label:'Alam'},
+  {ar:'السَّفِينَةُ', id:'Kapal Besar',     cat:'t4', label:'Alam'},
+  {ar:'اَلْمَنَاظِرُ الطَّبِيعِيَّةُ', id:'Pemandangan Alam', cat:'t4', label:'Alam'},
+  // Kata tunjuk (bonus)
+  {ar:'هَذَا',       id:'Ini (laki-laki)',  cat:'t3', label:'Kata Tunjuk'},
+  {ar:'هَذِهِ',      id:'Ini (perempuan)',  cat:'t3', label:'Kata Tunjuk'},
+  {ar:'ذَلِكَ',      id:'Itu (laki-laki)',  cat:'t3', label:'Kata Tunjuk'},
+  {ar:'تِلْكَ',      id:'Itu (perempuan)',  cat:'t3', label:'Kata Tunjuk'},
+];
+
+// =========================================================
+//  STATE
+// =========================================================
+let currentMode = 'grid';
+let currentTab  = 'all';
+let searchTerm  = '';
+let fcIndex     = 0;
+let fcFlipped   = false;
+let fcList      = [];
+let seenSet     = new Set();
+
+function getFiltered() {
+  let list = VOCAB;
+  if (currentTab !== 'all') list = list.filter(v => v.cat === currentTab);
+  if (searchTerm) {
+    const s = searchTerm.toLowerCase();
+    list = list.filter(v => v.ar.includes(s) || v.id.toLowerCase().includes(s));
+  }
+  return list;
+}
+
+// =========================================================
+//  RENDER DISPATCHER
+// =========================================================
+function render() {
+  const area = document.getElementById('content-area');
+  const list = getFiltered();
+
+  if (currentMode === 'grid')  area.innerHTML = renderGrid(list);
+  else if (currentMode === 'list') area.innerHTML = renderList(list);
+  else if (currentMode === 'flash') { area.innerHTML = renderFlash(list); initFlash(list); }
+}
+
+// =========================================================
+//  GRID MODE
+// =========================================================
+function renderGrid(list) {
+  if (!list.length) return wrapSearch(`<div class="no-result">Tidak ada kosakata ditemukan 😕</div>`);
+
+  const groups = groupByLabel(list);
+  let html = wrapSearch('');
+  groups.forEach(([label, items]) => {
+    html += `<div class="sec-header">${labelIcon(label)} ${label} <span class="sec-badge">${items.length} kata</span></div>`;
+    html += `<div class="vocab-grid">`;
+    items.forEach((v, i) => {
+      const idx = VOCAB.indexOf(v);
+      html += `
+        <div class="vocab-card" onclick="this.classList.toggle('flipped')" title="Klik untuk lihat artinya">
+          <div class="card-num">${i+1}</div>
+          <div class="card-tag">${v.label}</div>
+          <div class="front">
+            <div class="card-arabic">${v.ar}</div>
+            <div class="flip-hint">👆 klik untuk arti</div>
+          </div>
+          <div class="back">
+            <div style="font-size:.7rem;color:#a0aec0;margin-bottom:6px">Artinya:</div>
+            <div class="card-indonesian">${v.id}</div>
+            <div style="font-family:'Traditional Arabic',serif;font-size:1rem;color:#a0aec0;margin-top:6px">${v.ar}</div>
+          </div>
+        </div>`;
+    });
+    html += `</div>`;
+  });
+  return html;
+}
+
+// =========================================================
+//  LIST MODE
+// =========================================================
+function renderList(list) {
+  if (!list.length) return wrapSearch(`<div class="no-result">Tidak ada kosakata ditemukan 😕</div>`);
+  const groups = groupByLabel(list);
+  let html = wrapSearch('');
+  groups.forEach(([label, items]) => {
+    html += `<div class="sec-header">${labelIcon(label)} ${label} <span class="sec-badge">${items.length} kata</span></div>
+    <div class="vocab-list">`;
+    items.forEach((v, i) => {
+      html += `
+        <div class="list-item">
+          <span class="list-num">${i+1}</span>
+          <span class="list-arabic">${v.ar}</span>
+          <span class="list-arrow">→</span>
+          <span class="list-id">${v.id}</span>
+          <span class="list-tag-s">${v.label}</span>
+        </div>`;
+    });
+    html += `</div>`;
+  });
+  return html;
+}
+
+// =========================================================
+//  FLASHCARD MODE
+// =========================================================
+function renderFlash(list) {
+  if (!list.length) return wrapSearch(`<div class="no-result">Tidak ada kosakata ditemukan 😕</div>`);
+  return wrapSearch(`
+    <div class="flashcard-wrap">
+      <div class="fc-progress">Kartu <b id="fc-cur">1</b> dari <b id="fc-tot">${list.length}</b></div>
+      <div class="flashcard" id="fc-card" onclick="flipFC()">
+        <div class="fc-inner">
+          <div class="fc-face fc-front">
+            <div class="fc-label">Bahasa Arab</div>
+            <div class="fc-arabic" id="fc-ar"></div>
+            <div class="fc-hint">👆 klik untuk lihat artinya</div>
+          </div>
+          <div class="fc-face fc-back">
+            <div class="fc-label">Artinya dalam Bahasa Indonesia</div>
+            <div class="fc-indo" id="fc-id"></div>
+            <div style="font-family:'Traditional Arabic',serif;font-size:1.1rem;color:#a0aec0;margin-top:10px" id="fc-ar2"></div>
+          </div>
+        </div>
+      </div>
+      <div class="fc-controls">
+        <button class="fc-btn fc-prev" onclick="prevFC()">◀ Sebelumnya</button>
+        <button class="fc-btn fc-shuffle" onclick="shuffleFC()">🔀 Acak</button>
+        <button class="fc-btn fc-next" onclick="nextFC()">Berikutnya ▶</button>
+      </div>
+      <div style="margin-top:12px;font-size:.75rem;color:#a0aec0;text-align:center">Sudah dihafal: <b id="fc-seen">0</b> / ${list.length}</div>
+      <div class="fc-counter" id="fc-dots"></div>
+    </div>`);
+}
+
+function initFlash(list) {
+  fcList = [...list];
+  fcIndex = 0;
+  fcFlipped = false;
+  seenSet = new Set();
+  updateFC();
+}
+
+function updateFC() {
+  if (!fcList.length) return;
+  const v = fcList[fcIndex];
+  const card = document.getElementById('fc-card');
+  if (!card) return;
+
+  // Reset flip
+  card.classList.remove('flipped');
+  fcFlipped = false;
+
+  document.getElementById('fc-ar').textContent  = v.ar;
+  document.getElementById('fc-id').textContent  = v.id;
+  document.getElementById('fc-ar2').textContent = v.ar;
+  document.getElementById('fc-cur').textContent = fcIndex + 1;
+  document.getElementById('fc-seen').textContent = seenSet.size;
+
+  // Dots (max 20 dots)
+  const dotsEl = document.getElementById('fc-dots');
+  if (dotsEl && fcList.length <= 25) {
+    dotsEl.innerHTML = fcList.map((_,i) =>
+      `<div class="fc-dot ${i===fcIndex?'active':''} ${seenSet.has(i)?'seen':''}" onclick="goFC(${i})"></div>`
+    ).join('');
+  }
+}
+
+function flipFC() {
+  const card = document.getElementById('fc-card');
+  if (!card) return;
+  card.classList.toggle('flipped');
+  fcFlipped = !fcFlipped;
+  if (fcFlipped) { seenSet.add(fcIndex); updateFC(); }
+}
+function nextFC() {
+  if (fcIndex < fcList.length - 1) { fcIndex++; updateFC(); }
+  else { fcIndex = 0; updateFC(); } // loop
+}
+function prevFC() {
+  if (fcIndex > 0) { fcIndex--; updateFC(); }
+  else { fcIndex = fcList.length - 1; updateFC(); }
+}
+function goFC(i) { fcIndex = i; updateFC(); }
+function shuffleFC() {
+  // Fisher-Yates shuffle
+  for (let i = fcList.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [fcList[i], fcList[j]] = [fcList[j], fcList[i]];
+  }
+  fcIndex = 0; seenSet = new Set();
+  updateFC();
+}
+
+// =========================================================
+//  SEARCH
+// =========================================================
+function wrapSearch(inner) {
+  return `
+    <div style="padding:14px;max-width:960px;margin:0 auto">
+      <div class="search-bar">
+        <input class="search-input" id="search-inp" type="text" placeholder="🔍 Cari kata Arab atau Indonesia..."
+          value="${searchTerm}" oninput="doSearch(this.value)">
+        <button class="search-clear" onclick="doSearch('')">✕ Hapus</button>
+      </div>
+      ${inner}
+    </div>`;
+}
+
+function doSearch(val) {
+  searchTerm = val;
+  render();
+  setTimeout(() => {
+    const inp = document.getElementById('search-inp');
+    if (inp) { inp.focus(); inp.value = val; }
+  }, 10);
+}
+
+// =========================================================
+//  HELPERS
+// =========================================================
+function groupByLabel(list) {
+  const map = new Map();
+  list.forEach(v => {
+    if (!map.has(v.label)) map.set(v.label, []);
+    map.get(v.label).push(v);
+  });
+  return [...map.entries()];
+}
+
+function labelIcon(label) {
+  const icons = {
+    'Transportasi':'🚌', 'Perabot':'🏠', 'Pakaian':'👘',
+    'Alam':'🌿', 'Kata Tunjuk':'👉'
+  };
+  return icons[label] || '📚';
+}
+
+// =========================================================
+//  TAB & MODE SWITCHERS
+// =========================================================
+function showTab(id, btn) {
+  currentTab = id;
+  searchTerm = '';
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function setMode(mode, btn) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+// =========================================================
+//  INIT
+// =========================================================
+render();
+</script>
+</body>
+</html>

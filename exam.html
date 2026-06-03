@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulasi Ujian Bahasa Arab SD</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;color:#2d3748;min-height:100vh}
+
+header{background:linear-gradient(135deg,#1a5f3c,#2d9e5f);color:white;padding:18px 16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+header h1{font-size:clamp(1rem,4vw,1.5rem);margin-bottom:4px}
+header p{font-size:clamp(.7rem,2.5vw,.85rem);opacity:.9}
+
+.identity-bar{background:white;padding:12px 16px;display:flex;flex-wrap:wrap;gap:10px;justify-content:center;border-bottom:2px solid #e2e8f0;box-shadow:0 1px 4px rgba(0,0,0,.07)}
+.identity-bar label{font-size:.82rem;font-weight:600;color:#4a5568}
+.identity-bar input{border:1px solid #cbd5e0;border-radius:6px;padding:5px 9px;font-size:.82rem;width:150px}
+.field{display:flex;align-items:center;gap:6px}
+
+.tabs{display:flex;overflow-x:auto;background:#1a5f3c;gap:2px;padding:0 8px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab-btn{flex-shrink:0;background:rgba(255,255,255,.15);color:white;border:none;padding:10px 16px;font-size:.78rem;font-weight:600;cursor:pointer;border-radius:8px 8px 0 0;margin-top:6px;transition:background .2s;white-space:nowrap}
+.tab-btn.active{background:#f0f4f8;color:#1a5f3c}
+.tab-btn:hover:not(.active){background:rgba(255,255,255,.28)}
+
+.tab-panel{display:none;padding:14px;max-width:900px;margin:0 auto}
+.tab-panel.active{display:block}
+
+.section{background:white;border-radius:12px;padding:16px;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,.06);border-left:4px solid #2d9e5f}
+.section-title{font-size:.92rem;font-weight:700;color:#1a5f3c;margin-bottom:4px;padding-bottom:8px;border-bottom:1px solid #e2e8f0}
+.section-inst{font-size:.78rem;color:#718096;margin-bottom:14px;margin-top:6px;background:#f0fdf4;padding:7px 10px;border-radius:6px}
+
+/* Question */
+.question{margin-bottom:18px;padding-bottom:16px;border-bottom:1px dashed #e2e8f0}
+.question:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.q-label{font-size:.88rem;font-weight:600;color:#2d3748;margin-bottom:8px;line-height:1.5}
+.arabic{font-family:'Traditional Arabic','Scheherazade New','Arial Unicode MS',serif;font-size:1.5rem;direction:rtl;display:inline-block;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:4px 14px;margin:2px 0;color:#14532d;line-height:1.6}
+.arabic-sm{font-family:'Traditional Arabic','Scheherazade New','Arial Unicode MS',serif;font-size:1.2rem;direction:rtl;display:inline;color:#14532d}
+.arabic-inline{font-family:'Traditional Arabic','Scheherazade New','Arial Unicode MS',serif;font-size:1.15rem;direction:rtl;display:inline-block;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:5px;padding:2px 10px;color:#14532d}
+
+/* Options */
+.options{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.opt{display:flex;align-items:center;gap:10px;padding:9px 13px;border-radius:8px;border:1.5px solid #e2e8f0;cursor:pointer;transition:all .15s;font-size:.86rem;user-select:none}
+.opt:hover{border-color:#2d9e5f;background:#f0fdf4}
+.opt.selected{border-color:#2d9e5f;background:#f0fdf4}
+.opt.correct{background:#dcfce7!important;border-color:#16a34a!important;color:#14532d;font-weight:600}
+.opt.wrong{background:#fee2e2!important;border-color:#dc2626!important;color:#991b1b}
+.opt-key{width:26px;height:26px;border-radius:50%;background:#e2e8f0;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0;color:#4a5568;transition:all .15s}
+.opt.selected .opt-key{background:#2d9e5f;color:white}
+.opt.correct .opt-key{background:#16a34a;color:white}
+.opt.wrong .opt-key{background:#dc2626;color:white}
+
+/* Susun huruf display */
+.letters-box{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;direction:rtl;justify-content:flex-end}
+.letter-card{display:inline-flex;align-items:center;justify-content:center;min-width:38px;height:38px;border:2px solid #2d9e5f;border-radius:8px;background:#f0fdf4;font-family:'Traditional Arabic','Scheherazade New',serif;font-size:1.3rem;color:#14532d;padding:0 6px;font-weight:600}
+.letters-separator{color:#94a3b8;font-size:1rem;align-self:center}
+
+/* Sambunkan huruf display */
+.sambung-box{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px;direction:rtl;justify-content:flex-end;align-items:center}
+.sambung-card{font-family:'Traditional Arabic','Scheherazade New',serif;font-size:1.3rem;color:#14532d;background:#fffbeb;border:1.5px dashed #f59e0b;border-radius:6px;padding:3px 8px;line-height:1.5}
+.sambung-dash{color:#94a3b8;font-size:1.2rem;align-self:center;margin:0 2px}
+
+/* Riddle clue box */
+.clue-box{background:#fffbeb;border:1.5px solid #fcd34d;border-radius:8px;padding:10px 14px;margin-bottom:12px}
+.clue-title{font-size:.72rem;font-weight:700;color:#92400e;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
+.clue-text{font-size:.84rem;color:#4a5568;line-height:1.6}
+.clue-hint{font-family:'Traditional Arabic','Scheherazade New',serif;font-size:1.1rem;color:#1a5f3c;font-weight:700;margin-top:4px}
+
+/* Kata tunjuk special options */
+.kt-options{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}
+.kt-opt{padding:10px 8px;border:2px solid #e2e8f0;border-radius:8px;cursor:pointer;text-align:center;font-family:'Traditional Arabic','Scheherazade New',serif;font-size:1.3rem;direction:rtl;color:#14532d;background:#f0fdf4;transition:all .15s;user-select:none}
+.kt-opt:hover{border-color:#2d9e5f;background:#dcfce7}
+.kt-opt.selected{border-color:#2d9e5f;background:#dcfce7;box-shadow:0 0 0 2px rgba(45,158,95,.3)}
+.kt-opt.correct{background:#dcfce7!important;border-color:#16a34a!important;font-weight:700}
+.kt-opt.wrong{background:#fee2e2!important;border-color:#dc2626!important}
+.kt-sub{font-family:'Segoe UI',Arial,sans-serif;font-size:.68rem;color:#718096;display:block;margin-top:2px;direction:ltr}
+
+/* Image-dependent note */
+.img-note{font-size:.72rem;color:#f59e0b;background:#fffbeb;border:1px solid #fcd34d;border-radius:4px;padding:3px 8px;display:inline-block;margin-top:4px}
+
+/* Score area */
+.score-area{background:white;border-radius:12px;padding:18px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,.06);text-align:center}
+.btn-submit{background:linear-gradient(135deg,#1a5f3c,#2d9e5f);color:white;border:none;padding:12px 28px;border-radius:10px;font-size:.9rem;font-weight:700;cursor:pointer;width:100%;max-width:260px;box-shadow:0 3px 8px rgba(45,158,95,.4);transition:transform .1s,box-shadow .1s}
+.btn-submit:hover{transform:translateY(-1px);box-shadow:0 5px 12px rgba(45,158,95,.5)}
+.btn-reset{background:#718096;color:white;border:none;padding:9px 22px;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer;margin-top:9px;width:100%;max-width:160px}
+.btn-reset:hover{background:#4a5568}
+.score-display{display:none;margin-top:16px;padding:18px;border-radius:12px;background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:2px solid #16a34a;animation:fadeIn .4s}
+.score-display.shown{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.score-num{font-size:clamp(2.5rem,8vw,4rem);font-weight:900;color:#14532d;line-height:1}
+.score-lbl{font-size:.82rem;color:#4a5568;margin-top:3px}
+.score-bar{height:10px;background:#e2e8f0;border-radius:999px;margin:10px auto;max-width:240px;overflow:hidden}
+.score-bar-fill{height:100%;background:linear-gradient(90deg,#16a34a,#4ade80);border-radius:999px;transition:width 1s ease;width:0}
+.score-grade{font-size:1rem;font-weight:700;margin-top:8px;padding:5px 18px;border-radius:999px;display:inline-block}
+.g-a{background:#dcfce7;color:#14532d}.g-b{background:#dbeafe;color:#1e3a5f}.g-c{background:#fef9c3;color:#713f12}.g-d{background:#fee2e2;color:#7f1d1d}
+.score-det{margin-top:10px;font-size:.8rem;color:#4a5568;line-height:1.7}
+
+/* Kunci jawaban */
+.kunci{display:none;margin-top:16px;background:#fff8f1;border:1px solid #fed7aa;border-radius:10px;padding:14px;text-align:left}
+.kunci.shown{display:block}
+.kunci-title{font-weight:700;color:#c05621;margin-bottom:10px;font-size:.85rem}
+.kunci-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:5px}
+.ki{font-size:.78rem;color:#4a5568;background:white;padding:5px 8px;border-radius:6px;border:1px solid #fed7aa;line-height:1.4}
+.ki span{font-weight:700;color:#1a5f3c}
+
+@media(max-width:500px){
+  .kt-options{grid-template-columns:1fr 1fr}
+  .letters-box{justify-content:flex-start;direction:ltr}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📚 Simulasi Ujian Bahasa Arab SD</h1>
+  <p>Penilaian Harian · Semester Genap &amp; Ganjil 2025/2026</p>
+</header>
+
+<div class="identity-bar">
+  <div class="field"><label>Nama:</label><input id="inp-nama" type="text" placeholder="Nama siswa..."></div>
+  <div class="field"><label>Kelas:</label><input id="inp-kelas" type="text" placeholder="Kelas..." style="width:90px"></div>
+  <div class="field"><label>Tanggal:</label><input id="inp-tgl" type="date" style="width:145px"></div>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="showTab('ph1',this)">🚌 PH 1 – Alat Transportasi</button>
+  <button class="tab-btn" onclick="showTab('ph2',this)">🏠 PH 2 – Perabot Rumah</button>
+  <button class="tab-btn" onclick="showTab('ph3',this)">👘 PH 3 – Pakaian</button>
+  <button class="tab-btn" onclick="showTab('ph4',this)">🌿 PH 4 – Alam &amp; Lingkungan</button>
+</div>
+
+<div id="ph1" class="tab-panel active"></div>
+<div id="ph2" class="tab-panel"></div>
+<div id="ph3" class="tab-panel"></div>
+<div id="ph4" class="tab-panel"></div>
+
+<script>
+// =========================================================
+//  EXAM DATA
+// =========================================================
+const EXAMS = {
+
+  ph1: {
+    title: "PH 1 – Alat Transportasi",
+    subtitle: "SOAL PENILAIAN HARIAN | Semester Genap 2025/2026",
+    sections: [
+      {
+        id:"a", type:"pg",
+        title:"A. Pilihan Ganda",
+        inst:"Berilah tanda silang (×) pada huruf a, b, atau c pada jawaban yang benar!",
+        questions:[
+          {no:1, q:'Kata <b class="arabic">قِطَارٌ</b> artinya ...', opts:['Delman','Becak','Kereta'], ans:2},
+          {no:2, q:'Kata <b class="arabic">شَاحِنَةٌ</b> artinya ...', opts:['Delman','Becak','Truk'], ans:2},
+          {no:3, q:'Kata <b class="arabic">عَرَبَةٌ</b> artinya ...', opts:['Delman','Becak','Ambulan'], ans:0},
+          {no:4, q:'Kata <b class="arabic">بَاخِرَةٌ</b> artinya ...', opts:['Ambulan','Truk','Kapal Laut'], ans:2},
+          {no:5, q:'Kata <b class="arabic">طَائِرَةٌ</b> artinya ...', opts:['Pesawat Terbang','Kapal Laut','Truk'], ans:0}
+        ]
+      },
+      {
+        id:"b", type:"susun",
+        title:"B. Susun Huruf",
+        inst:"Susunlah huruf-huruf hijaiyah ini menjadi satu kata yang mempunyai arti! Pilih jawaban yang benar.",
+        questions:[
+          {no:1, letters:['ا','ي','س','ة','ر'], opts:['سَيَّارَةٌ','شَاحِنَةٌ','عَرَبَةٌ'], ans:0, meaning:'Mobil'},
+          {no:2, letters:['ا','و','ج','ة','ل'], opts:['بَاخِرَةٌ','طَائِرَةٌ','جَوَّالَةٌ'], ans:2, meaning:'Gerobak Dorong'},
+          {no:3, letters:['ا','د','ة','ج','ر'], opts:['دَرَّاجَةٌ','سَيَّارَةٌ','إِسْعَافٌ'], ans:0, meaning:'Sepeda'},
+          {no:4, letters:['ب','ش','ا','ت','ل'], opts:['أُوتُوبِيسٌ','قِطَارٌ','سَيَّارَةٌ'], ans:0, meaning:'Bus'},
+          {no:5, letters:['س','ا','ع','ا','ف'], opts:['قِطَارٌ','إِسْعَافٌ','بَاخِرَةٌ'], ans:1, meaning:'Ambulan'}
+        ]
+      },
+      {
+        id:"c", type:"riddle",
+        title:"C. Tebak Kata",
+        inst:"Tuliskan jawabanmu dengan bahasa Arab! Pilih kata Arab yang tepat sesuai petunjuk berikut.",
+        questions:[
+          {no:1, clue:'Aku adalah alat transportasi laut.\nAku berjalan di atas air.\nHuruf pertamaku (ب)', opts:['بَاخِرَةٌ','طَائِرَةٌ','قِطَارٌ'], ans:0},
+          {no:2, clue:'Aku adalah alat transportasi darat.\nAku memiliki 2 roda dan seekor kuda.\nHuruf pertamaku (ع)', opts:['سَيَّارَةٌ','عَرَبَةٌ','دَرَّاجَةٌ'], ans:1},
+          {no:3, clue:'Aku adalah alat transportasi darat.\nAku memiliki roda dan didorong.\nHuruf pertamaku (ج)', opts:['شَاحِنَةٌ','جَوَّالَةٌ','سَيَّارَةٌ'], ans:1},
+          {no:4, clue:'Aku adalah alat transportasi darat.\nAku harus dikayuh dengan kaki.\nHuruf pertamaku (د)', opts:['بَاخِرَةٌ','سَيَّارَةٌ','دَرَّاجَةٌ'], ans:2},
+          {no:5, clue:'Aku adalah alat transportasi udara.\nAku bisa terbang tinggi di langit.\nHuruf pertamaku (ط)', opts:['دَرَّاجَةٌ','قِطَارٌ','طَائِرَةٌ'], ans:2}
+        ]
+      },
+      {
+        id:"d", type:"translate",
+        title:"D. Terjemahkan",
+        inst:"Terjemahkan kalimat ini ke dalam bahasa Indonesia! Pilih terjemahan yang benar.",
+        questions:[
+          {no:1, arabic:'هَذَا إِسْعَافٌ', opts:['Ini kereta','Ini ambulan','Ini truk'], ans:1},
+          {no:2, arabic:'هَذَا قِطَارٌ', opts:['Ini kapal laut','Ini pesawat','Ini kereta'], ans:2},
+          {no:3, arabic:'ذَلِكَ أُوتُوبِيسٌ', opts:['Itu ambulan','Itu bus','Itu mobil'], ans:1},
+          {no:4, arabic:'هَذِهِ شَاحِنَةٌ', opts:['Itu truk','Ini becak','Ini truk'], ans:2},
+          {no:5, arabic:'تِلْكَ جَوَّالَةٌ', opts:['Ini gerobak dorong','Itu kereta','Itu gerobak dorong'], ans:2}
+        ]
+      }
+    ],
+    kunci:[
+      'No.1: c. Kereta','No.2: c. Truk','No.3: a. Delman','No.4: c. Kapal Laut','No.5: a. Pesawat Terbang',
+      'B1: سَيَّارَةٌ (Mobil)','B2: جَوَّالَةٌ (Gerobak)','B3: دَرَّاجَةٌ (Sepeda)','B4: أُوتُوبِيسٌ (Bus)','B5: إِسْعَافٌ (Ambulan)',
+      'C1: بَاخِرَةٌ','C2: عَرَبَةٌ','C3: جَوَّالَةٌ','C4: دَرَّاجَةٌ','C5: طَائِرَةٌ',
+      'D1: Ini ambulan','D2: Ini kereta','D3: Itu bus','D4: Ini truk','D5: Itu gerobak dorong'
+    ]
+  },
+
+  ph2: {
+    title: "PH 2 – Perabot Rumah",
+    subtitle: "SOAL PENILAIAN HARIAN KE 2 | Kelas 2 | Semester Genap 2025/2026",
+    sections: [
+      {
+        id:"i", type:"pg",
+        title:"I. Pilihan Ganda",
+        inst:"Berilah tanda silang (×) pada jawaban yang benar!",
+        questions:[
+          {no:1,  q:'Kata <b class="arabic">مِرْوَحَةٌ</b> artinya ...',          opts:['Bantal','Kipas Angin','Kulkas'],       ans:1},
+          {no:2,  q:'Kata <b class="arabic">وِسَادَةٌ</b> artinya ...',           opts:['Kipas Angin','Bantal','Kulkas'],        ans:1},
+          {no:3,  q:'Kata <b class="arabic">مِظَلَّةٌ</b> artinya ...',           opts:['Payung','Bantal','Kipas Angin'],        ans:0},
+          {no:4,  q:'Kata <b class="arabic">مَائِدَةٌ</b> artinya ...',           opts:['Meja','Kursi','Lemari'],                ans:0},
+          {no:5,  q:'Kata <b class="arabic">مِذْيَاعٌ</b> artinya ...',           opts:['Bantal','Kulkas','Radio'],              ans:2},
+          {no:6,  q:'Kompor gas dalam bahasa Arab adalah ...',
+            opts:['<span class="arabic-inline">مِذْيَاعٌ</span>','<span class="arabic-inline">مَوْقِدٌ</span>','<span class="arabic-inline">ثَلَّاجَةٌ</span>'], ans:1},
+          {no:7,  q:'Tempat tidur (dipan) dalam bahasa Arab adalah ...',
+            opts:['<span class="arabic-inline">صَحْنٌ</span>','<span class="arabic-inline">سَرِيرٌ</span>','<span class="arabic-inline">مِكْنَسَةٌ</span>'], ans:1},
+          {no:8,  q:'Mesin cuci dalam bahasa Arab adalah ...',
+            opts:['<span class="arabic-inline">مَوْقِدٌ</span>','<span class="arabic-inline">مِغْسَلَةٌ</span>','<span class="arabic-inline">مِزْبَلَةٌ</span>'], ans:1},
+          {no:9,  q:'Sendok dalam bahasa Arab adalah ...',
+            opts:['<span class="arabic-inline">صَحْنٌ</span>','<span class="arabic-inline">مِلْعَقَةٌ</span>','<span class="arabic-inline">وِسَادَةٌ</span>'], ans:1},
+          {no:10, q:'Telepon dalam bahasa Arab adalah ...',
+            opts:['<span class="arabic-inline">هَاتِفٌ</span>','<span class="arabic-inline">مِذْيَاعٌ</span>','<span class="arabic-inline">مِظَلَّةٌ</span>'], ans:0}
+        ]
+      },
+      {
+        id:"ii", type:"susun",
+        title:"II. Susun Huruf",
+        inst:"Susunlah huruf-huruf berikut menjadi kata yang mempunyai arti! Pilih jawaban yang benar.",
+        questions:[
+          {no:11, letters:['غ','م','س','ل','ة'], opts:['مِغْسَلَةٌ','مِظَلَّةٌ','مِكْنَسَةٌ'], ans:0, meaning:'Mesin Cuci'},
+          {no:12, letters:['ث','ج','ل','ا','ة'], opts:['ثَلَّاجَةٌ','مِذْيَاعٌ','مَوْقِدٌ'], ans:0, meaning:'Kulkas'},
+          {no:13, letters:['م','ع','ق','ل','ة'], opts:['مِرْوَحَةٌ','مِلْعَقَةٌ','مَائِدَةٌ'], ans:1, meaning:'Sendok'},
+          {no:14, letters:['م','ر','ح','و','ة'], opts:['مِغْسَلَةٌ','سَرِيرٌ','مِرْوَحَةٌ'], ans:2, meaning:'Kipas Angin'},
+          {no:15, letters:['م','ك','ن','س','ة'], opts:['هَاتِفٌ','وِسَادَةٌ','مِكْنَسَةٌ'], ans:2, meaning:'Sapu'}
+        ]
+      },
+      {
+        id:"iii", type:"translate",
+        title:"III. Artikan ke dalam Bahasa Indonesia",
+        inst:"Artikan ke dalam bahasa Indonesia! Pilih terjemahan yang benar.",
+        questions:[
+          {no:16, arabic:'تِلْكَ خِزَانَةٌ',  opts:['Itu lemari','Ini lemari','Itu meja'], ans:0},
+          {no:17, arabic:'تِلْكَ مَائِدَةٌ',  opts:['Ini kursi','Itu meja','Itu lemari'], ans:1},
+          {no:18, arabic:'ذَلِكَ سَرِيرٌ',   opts:['Ini kasur','Ini kursi','Itu tempat tidur'], ans:2}
+        ]
+      },
+      {
+        id:"iv", type:"arabic_answer",
+        title:"IV. Jawablah dalam Bahasa Arab",
+        inst:"Pilih kata bahasa Arab yang tepat sesuai deskripsi berikut!",
+        questions:[
+          {no:19, clue:'Aku digunakan untuk meletakkan makanan.\nAku ada di ruang makan.',
+            opts:['<span class="arabic-inline">مِرْوَحَةٌ</span>','<span class="arabic-inline">مَائِدَةٌ</span>','<span class="arabic-inline">سَرِيرٌ</span>'], ans:1},
+          {no:20, clue:'Aku digunakan untuk menyimpan makanan atau minuman.\nAku menggunakan listrik.',
+            opts:['<span class="arabic-inline">مَوْقِدٌ</span>','<span class="arabic-inline">وِسَادَةٌ</span>','<span class="arabic-inline">ثَلَّاجَةٌ</span>'], ans:2}
+        ]
+      }
+    ],
+    kunci:[
+      'No.1: b. Kipas Angin','No.2: b. Bantal','No.3: a. Payung','No.4: a. Meja','No.5: c. Radio',
+      'No.6: b. مَوْقِدٌ','No.7: b. سَرِيرٌ','No.8: b. مِغْسَلَةٌ','No.9: b. مِلْعَقَةٌ','No.10: a. هَاتِفٌ',
+      'No.11: مِغْسَلَةٌ (Mesin Cuci)','No.12: ثَلَّاجَةٌ (Kulkas)','No.13: مِلْعَقَةٌ (Sendok)','No.14: مِرْوَحَةٌ (Kipas)','No.15: مِكْنَسَةٌ (Sapu)',
+      'No.16: Itu lemari','No.17: Itu meja','No.18: Itu tempat tidur',
+      'No.19: مَائِدَةٌ','No.20: ثَلَّاجَةٌ'
+    ]
+  },
+
+  ph3: {
+    title: "PH 3 – Pakaian",
+    subtitle: "SOAL PENILAIAN HARIAN KE 3 | Semester Ganjil 2025/2026",
+    sections: [
+      {
+        id:"a", type:"pg",
+        title:"A. Pilihan Ganda",
+        inst:"Berilah tanda silang (×) pada huruf ا، ب، ج pada jawaban yang benar!",
+        questions:[
+          {no:1,  q:'Bahasa Arabnya celana adalah ...',
+            opts:['<span class="arabic-inline">إِزَارٌ</span>','<span class="arabic-inline">خِمَارٌ</span>','<span class="arabic-inline">سِرْوَالٌ</span>'], ans:2},
+          {no:2,  q:'Peci dalam bahasa Arab adalah ...',
+            opts:['<span class="arabic-inline">خِمَارٌ</span>','<span class="arabic-inline">سِرْوَالٌ</span>','<span class="arabic-inline">قَلَنْسُوَةٌ</span>'], ans:2},
+          {no:3,  q:'Dasi dalam bahasa Arab adalah ...',
+            opts:['<span class="arabic-inline">إِزَارٌ</span>','<span class="arabic-inline">قَلَنْسُوَةٌ</span>','<span class="arabic-inline">رِبَاطٌ</span>'], ans:2},
+          {no:4,  q:'Jubah dalam bahasa Arab adalah ...',
+            opts:['<span class="arabic-inline">قَلَنْسُوَةٌ</span>','<span class="arabic-inline">رِبَاطٌ</span>','<span class="arabic-inline">جُبَّةٌ</span>'], ans:2},
+          {no:5,  q:'Kaos kaki dalam bahasa Arab adalah ...',
+            opts:['<span class="arabic-inline">رِبَاطٌ</span>','<span class="arabic-inline">جَوْرَبٌ</span>','<span class="arabic-inline">خِمَارٌ</span>'], ans:1},
+          {no:6,  q:'Kerudung dalam bahasa Arab adalah ...',
+            opts:['<span class="arabic-inline">ثَوْبٌ</span>','<span class="arabic-inline">سِرْوَالٌ</span>','<span class="arabic-inline">خِمَارٌ</span>'], ans:2},
+          {no:7,  q:'Kain sarung dalam bahasa Arab adalah ...',
+            opts:['<span class="arabic-inline">ثَوْبٌ</span>','<span class="arabic-inline">إِزَارٌ</span>','<span class="arabic-inline">سِرْوَالٌ</span>'], ans:1},
+          {no:8,  q:'Sepatu dalam bahasa Arab adalah ...',
+            opts:['<span class="arabic-inline">حِذَاءٌ</span>','<span class="arabic-inline">جَوْرَبٌ</span>','<span class="arabic-inline">ثَوْبٌ</span>'], ans:0},
+          {no:9,  q:'Dinding/tembok dalam bahasa Arab adalah ...',
+            opts:['<span class="arabic-inline">حِذَاءٌ</span>','<span class="arabic-inline">جِدَارٌ</span>','<span class="arabic-inline">جُبَّةٌ</span>'], ans:1},
+          {no:10, q:'Papan tulis dalam bahasa Arab adalah ...',
+            opts:['<span class="arabic-inline">رِبَاطٌ</span>','<span class="arabic-inline">سُبُّورَةٌ</span>','<span class="arabic-inline">خِزَانَةٌ</span>'], ans:1}
+        ]
+      },
+      {
+        id:"b", type:"susun",
+        title:"B. Susun Huruf",
+        inst:"Susunlah huruf-huruf hijaiyah ini menjadi satu kata yang mempunyai arti! Pilih jawaban yang benar.",
+        questions:[
+          {no:1, letters:['ر','ج','ب','و'],       opts:['جَوْرَبٌ','رِبَاطٌ','حِذَاءٌ'],          ans:0, meaning:'Kaos Kaki'},
+          {no:2, letters:['ل','س','ر','ا','و'],   opts:['إِزَارٌ','سِرْوَالٌ','جُبَّةٌ'],          ans:1, meaning:'Celana'},
+          {no:3, letters:['ر','ب','ا','ط'],       opts:['خِمَارٌ','جَوْرَبٌ','رِبَاطٌ'],          ans:2, meaning:'Dasi'},
+          {no:4, letters:['ة','ل','ق','س','ن','و'], opts:['سُبُّورَةٌ','قَلَنْسُوَةٌ','مِكْنَسَةٌ'],  ans:1, meaning:'Peci'},
+          {no:5, letters:['خ','ر','ا','م'],       opts:['جِدَارٌ','سِرْوَالٌ','خِمَارٌ'],          ans:2, meaning:'Kerudung'}
+        ]
+      },
+      {
+        id:"c", type:"kata_tunjuk",
+        title:"C. Pasangkan Kata Tunjuk",
+        inst:'Pasangkanlah kosa kata di bawah ini dengan kata tunjuk yang sesuai! (هَذَا = ini [♂] · هَذِهِ = ini [♀] · ذَلِكَ = itu [♂] · تِلْكَ = itu [♀])',
+        questions:[
+          {no:1, desc:'Ini peci', arabic:'قَلَنْسُوَةٌ', opts:['هَذَا','هَذِهِ','ذَلِكَ','تِلْكَ'], ans:1, sub:['ini (♂)','ini (♀)','itu (♂)','itu (♀)']},
+          {no:2, desc:'Itu baju', arabic:'ثَوْبٌ',      opts:['هَذَا','هَذِهِ','ذَلِكَ','تِلْكَ'], ans:2, sub:['ini (♂)','ini (♀)','itu (♂)','itu (♀)']},
+          {no:3, desc:'Itu jubah', arabic:'جُبَّةٌ',   opts:['هَذَا','هَذِهِ','ذَلِكَ','تِلْكَ'], ans:3, sub:['ini (♂)','ini (♀)','itu (♂)','itu (♀)']},
+          {no:4, desc:'Ini dasi', arabic:'رِبَاطٌ',    opts:['هَذَا','هَذِهِ','ذَلِكَ','تِلْكَ'], ans:0, sub:['ini (♂)','ini (♀)','itu (♂)','itu (♀)']},
+          {no:5, desc:'Ini kain sarung', arabic:'إِزَارٌ', opts:['هَذَا','هَذِهِ','ذَلِكَ','تِلْكَ'], ans:0, sub:['ini (♂)','ini (♀)','itu (♂)','itu (♀)']}
+        ]
+      },
+      {
+        id:"d", type:"translate",
+        title:"D. Terjemahkan ke Bahasa Indonesia",
+        inst:"Terjemahkan kalimat ini ke dalam bahasa Indonesia! Pilih terjemahan yang benar.",
+        questions:[
+          {no:1, arabic:'هُوَ مَرِيضٌ',    opts:['Dia pergi','Dia sakit','Dia sedang tidur'], ans:1},
+          {no:2, arabic:'هَذَا سِرْوَالٌ', opts:['Ini celana','Itu baju','Ini sarung'], ans:0},
+          {no:3, arabic:'ذَلِكَ خِمَارٌ', opts:['Ini dasi','Itu kerudung','Ini peci'], ans:1},
+          {no:4, arabic:'هَذَا جَوْرَبٌ', opts:['Itu sepatu','Ini jubah','Ini kaos kaki'], ans:2},
+          {no:5, arabic:'ذَلِكَ حِذَاءٌ', opts:['Ini sepatu','Itu celana','Itu sepatu'], ans:2}
+        ]
+      }
+    ],
+    kunci:[
+      'No.1: c. سِرْوَالٌ','No.2: c. قَلَنْسُوَةٌ','No.3: c. رِبَاطٌ','No.4: c. جُبَّةٌ','No.5: b. جَوْرَبٌ',
+      'No.6: c. خِمَارٌ','No.7: b. إِزَارٌ','No.8: a. حِذَاءٌ','No.9: b. جِدَارٌ','No.10: b. سُبُّورَةٌ',
+      'B1: جَوْرَبٌ (Kaos Kaki)','B2: سِرْوَالٌ (Celana)','B3: رِبَاطٌ (Dasi)','B4: قَلَنْسُوَةٌ (Peci)','B5: خِمَارٌ (Kerudung)',
+      'C1: هَذِهِ (ini ♀)','C2: ذَلِكَ (itu ♂)','C3: تِلْكَ (itu ♀)','C4: هَذَا (ini ♂)','C5: هَذَا (ini ♂)',
+      'D1: Dia sakit','D2: Ini celana','D3: Itu kerudung','D4: Ini kaos kaki','D5: Itu sepatu'
+    ]
+  },
+
+  ph4: {
+    title: "PH 4 – Alam & Lingkungan",
+    subtitle: "PENILAIAN HARIAN BAHASA ARAB | SDIT Nurul Hikmah | Semester 2 2025-2026",
+    sections: [
+      {
+        id:"i", type:"pg",
+        title:"I. Pilihan Ganda (Silanglah ا، ب، ج)",
+        inst:"Silanglah ا، ب، dan ج pada jawaban yang benar!",
+        questions:[
+          {no:1,  q:'Kalimat <b class="arabic">ذَلِكَ شَلَّالٌ</b> artinya ...',   opts:['Itu becak','Itu mobil','Itu air terjun'],         ans:2},
+          {no:2,  q:'Kalimat <b class="arabic">تِلْكَ شَاحِنَةٌ</b> artinya ...', opts:['Itu motor','Itu sepeda','Itu truk'],               ans:2},
+          {no:3,  q:'Kalimat <b class="arabic">تِلْكَ غَابَةٌ</b> artinya ...',   opts:['Itu delman','Itu sepeda','Itu hutan'],             ans:2},
+          {no:4,  q:'<span class="img-note">📷 Perhatikan gambar!</span><br>مَا تِلْكَ؟ تِلْكَ ...',
+            opts:['<span class="arabic-inline">اَلْبِسَةُ</span>','<span class="arabic-inline">بَاخِرَةٌ</span>','<span class="arabic-inline">عَرَبَةٌ</span>'], ans:2},
+          {no:5,  q:'Kalimat <b class="arabic">هَذَا قِطَارٌ</b> artinya ...',    opts:['Ini kapal laut','Ini kereta','Ini ambulan'],        ans:1},
+          {no:6,  q:'<span class="img-note">📷 Perhatikan gambar!</span><br>مَا هَذَا؟ هَذَا ...',
+            opts:['<span class="arabic-inline">كُمْبِيُوتَرٌ</span>','<span class="arabic-inline">هَاتِفٌ</span>','<span class="arabic-inline">مَوْقِدٌ</span>'], ans:1},
+          {no:7,  q:'Kata <b class="arabic">اَلْمَنَاظِرُ الطَّبِيعِيَّةُ</b> artinya ...', opts:['Ini danau','Sungai besar','Pemandangan alam'], ans:2},
+          {no:8,  q:'<span class="img-note">📷 Perhatikan gambar!</span><br>مَا هَذَا؟ هَذَا ...',
+            opts:['<span class="arabic-inline">شَلَّالٌ</span>','<span class="arabic-inline">جَبَلٌ</span>','<span class="arabic-inline">بُحَيْرَةٌ</span>'], ans:0},
+          {no:9,  q:'Kalimat <b class="arabic">هَذِهِ مَزْرَعَةٌ</b> artinya ...',  opts:['Ini kebun','Ini sawah/ladang','Ini kapal'],         ans:1},
+          {no:10, q:'Kalimat <b class="arabic">هَذَا نَهْرٌ</b> artinya ...',      opts:['Ini laut','Ini telaga','Ini sungai'],               ans:2}
+        ]
+      },
+      {
+        id:"ii", type:"sambung",
+        title:"II. Sambunkan Huruf",
+        inst:"Sambunkan huruf-huruf berikut menjadi satu kata! Pilih jawaban yang benar.",
+        questions:[
+          {no:11, letters:['إِ','سْ','عَ','ا','فٌ'],   opts:['إِسْعَافٌ','بَاخِرَةٌ','مِظَلَّةٌ'],   ans:0, meaning:'Ambulan'},
+          {no:12, letters:['سَ','يَّ','رَ','ةٌ'],      opts:['مِكْنَسَةٌ','سَيَّارَةٌ','قِطَارٌ'],   ans:1, meaning:'Mobil'},
+          {no:13, letters:['بَ','ا','خِ','رَ','ةٌ'],   opts:['عَرَبَةٌ','شَاحِنَةٌ','بَاخِرَةٌ'],   ans:2, meaning:'Kapal Laut'},
+          {no:14, letters:['مِ','ظَ','لَّ','ةٌ'],      opts:['مِغْسَلَةٌ','مِظَلَّةٌ','مِرْوَحَةٌ'], ans:1, meaning:'Payung'},
+          {no:15, letters:['مِ','كْ','نَ','سَ','ةٌ'],  opts:['مِكْنَسَةٌ','مِلْعَقَةٌ','مَوْقِدٌ'],  ans:0, meaning:'Sapu'}
+        ]
+      },
+      {
+        id:"iii", type:"translate",
+        title:"III. Artikan Kalimat ke dalam Bahasa Indonesia",
+        inst:"Artikan kalimat berikut ke dalam bahasa Indonesia! Pilih terjemahan yang benar.",
+        questions:[
+          {no:16, arabic:'هَذِهِ مِغْسَلَةٌ',          opts:['Ini kipas angin','Ini mesin cuci','Ini payung'],    ans:1},
+          {no:17, arabic:'هَذَا شَاطِئُ الْبَحْرِ',   opts:['Ini danau','Ini pantai laut','Ini sungai'],        ans:1},
+          {no:18, arabic:'هَذَا هَاتِفٌ',             opts:['Ini radio','Ini lemari','Ini telepon'],            ans:2},
+          {no:19, arabic:'هَذِهِ بُحَيْرَةٌ',         opts:['Ini sawah','Ini danau','Ini gunung'],              ans:1},
+          {no:20, arabic:'تِلْكَ السَّفِينَةُ',       opts:['Itu ambulan','Itu truk','Itu kapal besar'],        ans:2}
+        ]
+      }
+    ],
+    kunci:[
+      'No.1: c. Itu air terjun','No.2: c. Itu truk','No.3: c. Itu hutan','No.4: c. عَرَبَةٌ *gambar','No.5: b. Ini kereta',
+      'No.6: b. هَاتِفٌ *gambar','No.7: c. Pemandangan alam','No.8: a. شَلَّالٌ *gambar','No.9: b. Ini sawah/ladang','No.10: c. Ini sungai',
+      'No.11: إِسْعَافٌ (Ambulan)','No.12: سَيَّارَةٌ (Mobil)','No.13: بَاخِرَةٌ (Kapal)','No.14: مِظَلَّةٌ (Payung)','No.15: مِكْنَسَةٌ (Sapu)',
+      'No.16: Ini mesin cuci','No.17: Ini pantai laut','No.18: Ini telepon','No.19: Ini danau','No.20: Itu kapal besar'
+    ]
+  }
+};
+
+// =========================================================
+//  STATE
+// =========================================================
+const state = {}; // state[examId][qIndex] = selectedOptIndex
+
+// =========================================================
+//  RENDER
+// =========================================================
+function renderExam(examId) {
+  const exam = EXAMS[examId];
+  const container = document.getElementById(examId);
+  if (!exam) return;
+
+  state[examId] = {};
+
+  let html = `<div style="text-align:center;margin:8px 0 14px;font-size:.8rem;color:#718096">${exam.subtitle}</div>`;
+
+  let qGlobal = 0; // global question counter across sections for state indexing
+
+  exam.sections.forEach(sec => {
+    html += `<div class="section">
+      <div class="section-title">${sec.title}</div>
+      <div class="section-inst">${sec.inst}</div>`;
+
+    sec.questions.forEach(q => {
+      const sid = `${examId}-${sec.id}-${q.no}`;
+      state[examId][sid] = null;
+
+      if (sec.type === 'pg' || sec.type === 'translate' || sec.type === 'arabic_answer') {
+        html += renderPGQuestion(sid, q, sec.type);
+      } else if (sec.type === 'susun') {
+        html += renderSusunQuestion(sid, q);
+      } else if (sec.type === 'sambung') {
+        html += renderSambungQuestion(sid, q);
+      } else if (sec.type === 'riddle') {
+        html += renderRiddleQuestion(sid, q);
+      } else if (sec.type === 'kata_tunjuk') {
+        html += renderKataTunjukQuestion(sid, q);
+      }
+    });
+
+    html += `</div>`;
+  });
+
+  // Score area
+  html += `
+  <div class="score-area">
+    <button class="btn-submit" onclick="submitExam('${examId}')">✅ Selesai &amp; Lihat Nilai</button><br>
+    <button class="btn-reset" onclick="resetExam('${examId}')">🔄 Ulangi</button>
+    <div class="score-display" id="score-${examId}">
+      <div class="score-num" id="snum-${examId}">0</div>
+      <div class="score-lbl">Nilai Akhir (0–100)</div>
+      <div class="score-bar"><div class="score-bar-fill" id="sbar-${examId}"></div></div>
+      <div class="score-grade" id="sgrade-${examId}"></div>
+      <div class="score-det" id="sdet-${examId}"></div>
+    </div>
+    <div class="kunci" id="kunci-${examId}">
+      <div class="kunci-title">🔑 Kunci Jawaban</div>
+      <div class="kunci-grid">${exam.kunci.map(k=>`<div class="ki"><span>${k}</span></div>`).join('')}</div>
+    </div>
+  </div>`;
+
+  container.innerHTML = html;
+}
+
+function renderPGQuestion(sid, q, type) {
+  const note = type === 'arabic_answer' ?
+    `<div class="clue-box"><div class="clue-title">Petunjuk</div><div class="clue-text" style="white-space:pre-line">${q.clue}</div></div>` : '';
+  const qText = type === 'translate'
+    ? `Artikan kalimat berikut! <div class="arabic" style="margin:6px 0">${q.arabic}</div>`
+    : (q.q || '');
+  return `<div class="question" id="q-${sid}">
+    <div class="q-label">${q.no}. ${qText}</div>
+    ${note}
+    <div class="options">
+      ${q.opts.map((o,i) => `
+        <div class="opt" id="opt-${sid}-${i}" onclick="selectOpt('${sid}',${i})">
+          <span class="opt-key">${['a','b','c','d'][i]}</span>
+          <span>${o}</span>
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function renderSusunQuestion(sid, q) {
+  const letterCards = q.letters.map(l =>
+    `<span class="letter-card">${l}</span>`
+  ).join('<span class="letters-separator">-</span>');
+  return `<div class="question" id="q-${sid}">
+    <div class="q-label">${q.no}. Susunlah huruf-huruf berikut menjadi satu kata!</div>
+    <div class="letters-box">${letterCards}</div>
+    <div class="options">
+      ${q.opts.map((o,i) => `
+        <div class="opt" id="opt-${sid}-${i}" onclick="selectOpt('${sid}',${i})">
+          <span class="opt-key">${['a','b','c'][i]}</span>
+          <span class="arabic-sm">${o}</span>
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function renderSambungQuestion(sid, q) {
+  const cards = q.letters.map(l =>
+    `<span class="sambung-card">${l}</span>`
+  ).join('<span class="sambung-dash">+</span>');
+  return `<div class="question" id="q-${sid}">
+    <div class="q-label">${q.no}. Sambungkan huruf-huruf berikut menjadi satu kata!</div>
+    <div class="sambung-box">${cards}</div>
+    <div class="options">
+      ${q.opts.map((o,i) => `
+        <div class="opt" id="opt-${sid}-${i}" onclick="selectOpt('${sid}',${i})">
+          <span class="opt-key">${['a','b','c'][i]}</span>
+          <span class="arabic-sm">${o}</span>
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function renderRiddleQuestion(sid, q) {
+  return `<div class="question" id="q-${sid}">
+    <div class="q-label">${q.no}. Tebak kata berikut! Pilih jawaban dalam bahasa Arab.</div>
+    <div class="clue-box">
+      <div class="clue-title">🔍 Petunjuk</div>
+      <div class="clue-text" style="white-space:pre-line">${q.clue}</div>
+    </div>
+    <div class="options">
+      ${q.opts.map((o,i) => `
+        <div class="opt" id="opt-${sid}-${i}" onclick="selectOpt('${sid}',${i})">
+          <span class="opt-key">${['a','b','c'][i]}</span>
+          <span class="arabic-sm">${o}</span>
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function renderKataTunjukQuestion(sid, q) {
+  return `<div class="question" id="q-${sid}">
+    <div class="q-label">${q.no}. "${q.desc}" → <b class="arabic" style="font-size:1.2rem">${q.arabic}</b> + ?</div>
+    <div class="kt-options">
+      ${q.opts.map((o,i) => `
+        <div class="kt-opt" id="opt-${sid}-${i}" onclick="selectKT('${sid}',${i})">
+          ${o}
+          <span class="kt-sub">${q.sub[i]}</span>
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+// =========================================================
+//  INTERACTION
+// =========================================================
+function selectOpt(sid, idx) {
+  // Deselect previous
+  const prev = state[sid.split('-')[0]][sid];
+  if (prev !== null) {
+    const prevEl = document.getElementById(`opt-${sid}-${prev}`);
+    if (prevEl) prevEl.classList.remove('selected');
+  }
+  state[sid.split('-')[0]][sid] = idx;
+  const el = document.getElementById(`opt-${sid}-${idx}`);
+  if (el) el.classList.add('selected');
+}
+
+function selectKT(sid, idx) {
+  selectOpt(sid, idx);
+  // Also style kt-opt
+  const examId = sid.split('-')[0];
+  const secId = sid.split('-')[1];
+  const no = sid.split('-')[2];
+  for (let i=0; i<4; i++) {
+    const el = document.getElementById(`opt-${sid}-${i}`);
+    if (el) {
+      el.classList.remove('selected');
+    }
+  }
+  const el = document.getElementById(`opt-${sid}-${idx}`);
+  if (el) el.classList.add('selected');
+}
+
+// =========================================================
+//  SUBMIT & SCORE
+// =========================================================
+function submitExam(examId) {
+  const exam = EXAMS[examId];
+  let total = 0, correct = 0;
+  const detailParts = [];
+
+  exam.sections.forEach(sec => {
+    let secTotal = sec.questions.length;
+    let secCorrect = 0;
+
+    sec.questions.forEach(q => {
+      const sid = `${examId}-${sec.id}-${q.no}`;
+      const selected = state[examId][sid];
+      const isKT = sec.type === 'kata_tunjuk';
+
+      // Show all options
+      const numOpts = q.opts.length;
+      for (let i=0; i<numOpts; i++) {
+        const el = document.getElementById(`opt-${sid}-${i}`);
+        if (!el) continue;
+        el.classList.remove('selected');
+        if (i === q.ans) {
+          el.classList.add('correct');
+        } else if (selected !== null && selected === i) {
+          el.classList.add('wrong');
+        }
+        el.onclick = null; // disable further clicking
+      }
+
+      total++;
+      if (selected === q.ans) { correct++; secCorrect++; }
+    });
+
+    detailParts.push(`${sec.title}: ${secCorrect}/${secTotal}`);
+  });
+
+  const score = total > 0 ? Math.round((correct/total)*100) : 0;
+
+  // Show score
+  const scoreDiv = document.getElementById(`score-${examId}`);
+  scoreDiv.classList.add('shown');
+  document.getElementById(`snum-${examId}`).textContent = score;
+
+  setTimeout(() => {
+    document.getElementById(`sbar-${examId}`).style.width = score+'%';
+  }, 100);
+
+  let grade, gClass;
+  if (score >= 90) { grade='⭐ Sangat Baik (A)'; gClass='g-a'; }
+  else if (score >= 75) { grade='✅ Baik (B)'; gClass='g-b'; }
+  else if (score >= 60) { grade='📝 Cukup (C)'; gClass='g-c'; }
+  else { grade='❗ Perlu Belajar Lagi (D)'; gClass='g-d'; }
+
+  const gradeEl = document.getElementById(`sgrade-${examId}`);
+  gradeEl.textContent = grade;
+  gradeEl.className = 'score-grade '+gClass;
+
+  document.getElementById(`sdet-${examId}`).innerHTML =
+    `Benar: <b>${correct}</b> dari <b>${total}</b> soal<br>${detailParts.join(' · ')}`;
+
+  document.getElementById(`kunci-${examId}`).classList.add('shown');
+  scoreDiv.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function resetExam(examId) {
+  state[examId] = {};
+  renderExam(examId);
+}
+
+// =========================================================
+//  TABS
+// =========================================================
+function showTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// =========================================================
+//  INIT
+// =========================================================
+document.getElementById('inp-tgl').valueAsDate = new Date();
+['ph1','ph2','ph3','ph4'].forEach(id => renderExam(id));
+</script>
+</body>
+</html>
